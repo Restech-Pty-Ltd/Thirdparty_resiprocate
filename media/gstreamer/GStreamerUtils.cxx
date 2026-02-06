@@ -10,7 +10,7 @@
 #include <glibmm.h>
 #include <gstreamermm.h>
 #define GST_USE_UNSTABLE_API
-#include <gst/webrtc/gstwebrtcbin.h>
+#include <gst/webrtc/webrtc.h>
 
 #include "rutil/Logger.hxx"
 #include "rutil/Subsystem.hxx"
