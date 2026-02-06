@@ -179,8 +179,8 @@ install(TARGETS recon DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install_and_preserve_hierarchy(${CMAKE_INSTALL_INCLUDEDIR}/recon ${INCLUDES})
 
 # FIXME - revise the code in these directories to eliminate
-# dependency on sipXtapi
-if(USE_SIPXTAPI)
+# dependency on gStreamer
+if(USE_GSTREAMER)
    add_subdirectory(MOHParkServer)
    if(BUILD_TESTING)
        add_subdirectory(test)
