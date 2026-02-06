@@ -171,6 +171,7 @@ if(USE_KURENTO)
 endif()
 if(USE_GSTREAMER)
    target_link_libraries(recon PUBLIC gstreamerutils)
+   target_include_directories(recon PUBLIC ${CAJUN_INCLUDE_DIRS})
 endif()
 version_libname(recon)
 
