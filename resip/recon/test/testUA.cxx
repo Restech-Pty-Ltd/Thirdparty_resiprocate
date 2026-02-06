@@ -3,6 +3,8 @@
 #endif
 
 #include <signal.h>
+
+#include "resip/recon/GstMediaStackAdapter.hxx"
 #ifdef WIN32
 #include <conio.h>
 #else
@@ -38,13 +40,13 @@ int _kbhit() {
 }
 #endif
 
-#include "../SipXMediaStackAdapter.hxx"
+// #include "../SipXMediaStackAdapter.hxx"
 #include "../UserAgent.hxx"
 #include "../ReconSubsystem.hxx"
 
-#include <os/OsSysLog.h>
+//#include <os/OsSysLog.h>
 
-// Test Prompts for cache testing
+//Test Prompts for cache testing
 #include "media/samples/cache/playback_prompt.h"
 #include "media/samples/cache/record_prompt.h"
 
@@ -120,7 +122,8 @@ public:
       : ConversationManager(nullptr),
         mLocalAudioEnabled(localAudioEnabled)
    {
-      setMediaStackAdapter(make_shared<SipXMediaStackAdapter>(*this, localAudioEnabled, multipleMediaInterfaces ? SipXMediaStackAdapter::MediaInterfaceMode::sipXConversationMediaInterfaceMode : SipXMediaStackAdapter::MediaInterfaceMode::sipXGlobalMediaInterfaceMode));
+      // auto mediaInterfaceMode = multipleMediaInterfaces ? SipXMediaStackAdapter::MediaInterfaceMode::sipXConversationMediaInterfaceMode : SipXMediaStackAdapter::MediaInterfaceMode::sipXGlobalMediaInterfaceMode;
+      setMediaStackAdapter(make_shared<GstMediaStackAdapter>(*this, 44100, 192000));
       mDefaultAutoHoldMode = defaultAutoHoldModeToDisabled ? ConversationManager::AutoHoldDisabled : ConversationManager::AutoHoldEnabled;
    }
 
@@ -404,7 +407,7 @@ void processCommandLine(Data& commandline, MyConversationManager& myConversation
       }
    }
 
-   SipXMediaStackAdapter& mediaStackAdapter = static_cast<SipXMediaStackAdapter&>(myConversationManager.getMediaStackAdapter());
+   GstMediaStackAdapter& mediaStackAdapter = static_cast<GstMediaStackAdapter&>(myConversationManager.getMediaStackAdapter());
 
    // Process commands
    if(isEqualNoCase(command, "quit") || isEqualNoCase(command, "q") || isEqualNoCase(command, "exit") || isEqualNoCase(command, "x"))
@@ -756,42 +759,42 @@ void processCommandLine(Data& commandline, MyConversationManager& myConversation
    if(isEqualNoCase(command, "volume") || isEqualNoCase(command, "sv"))
    {
       unsigned long volume = arg[0].convertUnsignedLong();
-      mediaStackAdapter.setSpeakerVolume(volume);
+      // mediaStackAdapter.setSpeakerVolume(volume);
       InfoLog( << "Speaker volume set to " << volume);
       return;
    }
    if(isEqualNoCase(command, "gain") || isEqualNoCase(command, "sg"))
    {
       unsigned long gain = arg[0].convertUnsignedLong();
-      mediaStackAdapter.setMicrophoneGain(gain);
+      // mediaStackAdapter.setMicrophoneGain(gain);
       InfoLog( << "Microphone gain set to " << gain);
       return;
    }
    if(isEqualNoCase(command, "mute") || isEqualNoCase(command, "mm"))
    {
       bool enable = arg[0].convertUnsignedLong() != 0;
-      mediaStackAdapter.muteMicrophone(enable);
+      // mediaStackAdapter.muteMicrophone(enable);
       InfoLog( << "Microphone mute " << (enable ? "enabled" : "disabled"));
       return;
    }
    if(isEqualNoCase(command, "echocanel") || isEqualNoCase(command, "aec"))
    {
       bool enable = arg[0].convertUnsignedLong() != 0;
-      mediaStackAdapter.enableEchoCancel(enable);
+      // mediaStackAdapter.enableEchoCancel(enable);
       InfoLog( << "Echo cancellation " << (enable ? "enabled" : "disabled"));
       return;
    }
    if(isEqualNoCase(command, "autogain") || isEqualNoCase(command, "agc"))
    {
       bool enable = arg[0].convertUnsignedLong() != 0;
-      mediaStackAdapter.enableAutoGainControl(enable);
+      // mediaStackAdapter.enableAutoGainControl(enable);
       InfoLog( << "Automatic gain control " << (enable ? "enabled" : "disabled"));
       return;
    }
    if(isEqualNoCase(command, "noisereduction") || isEqualNoCase(command, "nr"))
    {
       bool enable = arg[0].convertUnsignedLong() != 0;
-      mediaStackAdapter.enableNoiseReduction(enable);
+      // mediaStackAdapter.enableNoiseReduction(enable);
       return;
    }
    if(isEqualNoCase(command, "subscribe") || isEqualNoCase(command, "cs"))
@@ -1165,20 +1168,7 @@ main (int argc, char** argv)
    Data tlsDomain = DnsUtil::getLocalHostName();
    NameAddr outboundProxy;
    Data logLevel("INFO");
-   std::vector<unsigned int> codecIds = { SdpCodec::SDP_CODEC_PCMU /* 0 - pcmu */,
-                               SdpCodec::SDP_CODEC_PCMA /* 8 - pcma */, 
-                               SdpCodec::SDP_CODEC_G729A /* 18 - g729 */,
-                               SdpCodec::SDP_CODEC_OPUS /* 147 - opus */,
-                               SdpCodec::SDP_CODEC_SPEEX /* 96 - speex NB 8,000bps */,
-                               SdpCodec::SDP_CODEC_SPEEX_15 /* 98 - speex NB 15,000bps */, 
-                               SdpCodec::SDP_CODEC_SPEEX_24 /* 99 - speex NB 24,600bps */,
-                               SdpCodec::SDP_CODEC_L16_44100_MONO /* PCM 16 bit/sample 44100 samples/sec. */, 
-                               SdpCodec::SDP_CODEC_ILBC /* 108 - iLBC */,
-                               SdpCodec::SDP_CODEC_ILBC_20MS /* 109 - Internet Low Bit Rate Codec, 20ms (RFC3951) */, 
-                               SdpCodec::SDP_CODEC_SPEEX_5 /* 97 - speex NB 5,950bps */,
-                               SdpCodec::SDP_CODEC_GSM /* 3 - GSM */,
-                               //SdpCodec::SDP_CODEC_G722 /* 9 - G.722 */,
-                               SdpCodec::SDP_CODEC_TONES /* 110 - telephone-event */};
+    std::vector<unsigned int> codecIds = { }; // Doesn't matter that this is empty, since we the method doesn't do anything with it
 
    // Loop through command line arguments and process them
    for(int i = 1; i < argc; i++)
@@ -1410,8 +1400,8 @@ main (int argc, char** argv)
    }
 
    //enableConsoleOutput(TRUE);  // Allow sipX console output
-   OsSysLog::initialize(0, "testUA");
-   OsSysLog::setOutputFile(0, "sipXtapilog.txt") ;
+   //OsSysLog::initialize(0, "testUA");
+   //OsSysLog::setOutputFile(0, "gtreamerlog.txt") ;
    //OsSysLog::enableConsoleOutput(true);
    //OsSysLog::setLoggingPriority(PRI_DEBUG);
    Log::initialize("Cout", logLevel, "testUA");
@@ -1621,7 +1611,7 @@ main (int argc, char** argv)
    {
       MyConversationManager myConversationManager(localAudioEnabled, multipleMediaInterfaceModeEnabled, defaultAutoHoldModeToDisabled);
       MyUserAgent ua(&myConversationManager, profile);
-      SipXMediaStackAdapter& mediaStackAdapter = static_cast<SipXMediaStackAdapter&>(myConversationManager.getMediaStackAdapter());
+      GstMediaStackAdapter& mediaStackAdapter = static_cast<GstMediaStackAdapter&>(myConversationManager.getMediaStackAdapter());
       mediaStackAdapter.buildSessionCapabilities(address, codecIds, g_conversationProfile->sessionCaps());
 
       // Generate InstanceId appropriate for testing only.  Should be UUID that persists 
@@ -1679,7 +1669,7 @@ main (int argc, char** argv)
       ua.shutdown();
    }
    InfoLog(LOG_PREFIX << "testUA is shutdown.");
-   OsSysLog::shutdown();
+   // OsSysLog::shutdown();
    sleepSeconds(2);
 
 #if defined(WIN32) && defined(_DEBUG) && defined(LEAK_CHECK) 
